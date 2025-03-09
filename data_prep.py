@@ -29,21 +29,40 @@ from config.defaults import (
 
 def load_json_data(file_path):
     """
-    Load JSON data from a file.
+    Load JSON data from a file and transform it into the required structure.
 
     Args:
         file_path (str): Path to the JSON file
 
     Returns:
-        dict: Loaded JSON data
+        dict: Loaded and transformed JSON data
     """
     try:
         with open(file_path, "r", encoding="utf-8") as file:
-            data = json.load(file)
-        logger.info(f"Successfully loaded data from {file_path}")
-        return data
+            raw_data = json.load(file)
+
+        # Transform data into requested structure
+        structured_data = {"root": {}}
+
+        for idx, item in enumerate(raw_data):
+            structured_data["root"][str(idx)] = {
+                "conversation": {
+                    "0": {
+                        "from": "human",
+                        "value": f"<image>What is the emotion of person in image among these 6 emotions: [Anger, Disgust, Fear, Happy, Neutral, Sad]?",
+                    },
+                    "1": {
+                        "from": "gpt",
+                        "value": str(item.get("total_score", "3")),
+                    },
+                },
+                "images": {"0": item.get("img_path", "")},
+            }
+
+        logger.info(f"Successfully loaded and transformed data from {file_path}")
+        return structured_data
     except Exception as e:
-        logger.error(f"Failed to load JSON from {file_path}: {e}")
+        logger.error(f"Failed to load or transform JSON from {file_path}: {e}")
         raise
 
 
